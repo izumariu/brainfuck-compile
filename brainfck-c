@@ -1,0 +1,24 @@
+#!/usr/bin/ruby
+code=String.new
+filename=ARGV.shift
+$VERBOSE=false
+ARGV.include?("-v")&&$VERBOSE=true
+filename==nil ? loop{x=gets.chomp;break if x=="__END__";code<<x} : File.open(filename,'r').each_line{|l|code<<l.chomp}
+code_arr = []
+code.split("").each do |ch|
+	case ch
+	when ">";code_arr << "++ptr;"
+	when "<";code_arr << "--ptr;"
+	when "+";code_arr << "++_c[ptr];"
+	when "-";code_arr << "--_c[ptr];"
+	when ".";code_arr << "putchar(_c[ptr]);"
+	when ",";code_arr << "_c[ptr] = getchar();"
+	when "[";code_arr << "while (_c[ptr]) {"
+	when "]";code_arr << "}"
+	end
+end
+filename==nil&&(print("Enter filename: ");filename=gets.chomp)
+filename=filename.split(".");filename.pop;filename=filename.join
+ostr="#include <stdio.h>\nunsigned char _c[30000]={};int ptr=0;\nint main(){#{code_arr.join}return 0;}"
+IO.popen("gcc -Wall -o #{filename} -xc -", 'w'){|io|io.write(ostr)}
+puts(ostr) if $VERBOSE
