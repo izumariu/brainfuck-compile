@@ -7,5 +7,7 @@ Usage:
 ```
 Options:
 
+
 -k:  Keeps the .c file after compiling.
+
 -v:  Outputs C code before compiling.
