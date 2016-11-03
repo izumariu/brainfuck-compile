@@ -2,8 +2,10 @@
 code=String.new
 filename=ARGV.shift
 $VERBOSE=false
+$KEEP=false
 ARGV.include?("-v")&&$VERBOSE=true
-filename==nil ? loop{x=gets.chomp;break if x=="__END__";code<<x} : File.open(filename,'r').each_line{|l|code<<l.chomp}
+ARGV.include?("-k")&&$KEEP=true
+filename==nil ? (puts("\e[31m\e[1mUSAGE: \e[0m ./brainfck-c <FILE> <OPTIONS>\n-v: output c code before compiling\n-k: keep the .c file");exit(1)) : File.open(filename,'r').each_line{|l|code<<l.chomp}
 code_arr = []
 code.split("").each do |ch|
 	case ch
@@ -12,13 +14,15 @@ code.split("").each do |ch|
 	when "+";code_arr << "++_c[ptr];"
 	when "-";code_arr << "--_c[ptr];"
 	when ".";code_arr << "putchar(_c[ptr]);"
-	when ",";code_arr << "_c[ptr] = getchar();"
-	when "[";code_arr << "while (_c[ptr]) {"
+	when ",";code_arr << "_c[ptr]=(char)getchar();"
+	when "[";code_arr << "while(_c[ptr]){"
 	when "]";code_arr << "}"
 	end
 end
 filename==nil&&(print("Enter filename: ");filename=gets.chomp)
-filename=filename.split(".");filename.pop;filename=filename.join
+filename=filename.split(".");filename.pop;filename=filename.join(".")
 ostr="#include <stdio.h>\nunsigned char _c[30000]={};int ptr=0;\nint main(){#{code_arr.join}return 0;}"
-IO.popen("gcc -Wall -o #{filename} -xc -", 'w'){|io|io.write(ostr)}
-puts(ostr) if $VERBOSE
+File.open("#{filename}.c","w"){|f|f.write(ostr)}
+$VERBOSE&&puts(ostr)
+system("gcc #{filename}.c -o #{filename}")
+!$KEEP&&system("rm #{filename}.c")
