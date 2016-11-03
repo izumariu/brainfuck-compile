@@ -5,3 +5,7 @@ Usage:
 ```bash
 ./brainfck-c <FILE> <OPTIONS>
 ```
+Options:
+
+-k:  Keeps the .c file after compiling.
+-v:  Outputs C code before compiling.
